@@ -15,6 +15,12 @@ exports.verifyToken = async (token) => {
   }
 };
 
-exports.setTokenCookie = (res, token) => {
-  res.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-};
+const setTokenCookie = (res, token) => {
+    res.cookie('jwt', token, {
+      httpOnly: true, // Agar cookie tidak bisa diakses oleh JavaScript
+      secure: process.env.NODE_ENV === 'production', // Hanya kirimkan cookie jika menggunakan HTTPS
+      sameSite: 'None', // Agar cookie bisa dikirimkan ke domain lain (cross-site)
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Set cookie expired 1 hari
+      path: '/', // Cookie berlaku untuk seluruh domain
+    });
+  };
