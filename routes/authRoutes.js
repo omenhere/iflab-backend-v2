@@ -5,6 +5,8 @@ const { authMiddleware } = require('../middlewares/authMiddleware'); // Impor mi
 
 router.post('/register', authController.register);
 
+router.post('/registerAslab', authController.registerAslab);
+
 router.post('/login', authController.login);
 
 router.post('/logout', authController.logout);
