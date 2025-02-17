@@ -49,20 +49,30 @@ exports.login = async (req, res) => {
   }
 
   try {
-    const user = await getAslabByNim(nim);
+    // Cek apakah user adalah Aslab
+    let user = await getAslabByNim(nim);
+
     if (!user) {
-      return res.status(401).json({ error: 'NIM not found' });
+      // Jika tidak ditemukan, cari user biasa
+      user = await getUserByNim(nim);
+      if (!user) {
+        return res.status(401).json({ error: 'NIM not found in both Aslab and User databases' });
+      }
     }
 
+    // Verifikasi password
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid password' });
     }
 
+    // Generate token
     const token = generateToken(user.id);
 
+    // Set token as cookie
     setTokenCookie(res, token);
 
+    // Response sukses
     res.status(200).json({ message: 'Login successful', user, token });
   } catch (err) {
     console.error(err);
