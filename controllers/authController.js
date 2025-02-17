@@ -49,30 +49,50 @@ exports.login = async (req, res) => {
   }
 
   try {
-    // Cek apakah user adalah Aslab
-    let user = await getAslabByNim(nim);
-
+    const user = await getUserByNim(nim);
     if (!user) {
-      // Jika tidak ditemukan, cari user biasa
-      user = await getUserByNim(nim);
-      if (!user) {
-        return res.status(401).json({ error: 'NIM not found in both Aslab and User databases' });
-      }
+      return res.status(401).json({ error: 'NIM not found' });
     }
 
-    // Verifikasi password
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid password' });
     }
 
-    // Generate token
     const token = generateToken(user.id);
 
-    // Set token as cookie
     setTokenCookie(res, token);
 
-    // Response sukses
+    res.status(200).json({ message: 'Login successful', user, token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+exports.loginAslab = async (req, res) => {
+  const { nim, password } = req.body;
+
+  if (!nim || !password) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    const user = await getAslabByNim(nim);
+    if (!user) {
+      return res.status(401).json({ error: 'NIM not found' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+
+    const token = generateToken(user.id);
+
+    setTokenCookie(res, token);
+
     res.status(200).json({ message: 'Login successful', user, token });
   } catch (err) {
     console.error(err);

@@ -9,6 +9,8 @@ router.post('/registerAslab', authController.registerAslab);
 
 router.post('/login', authController.login);
 
+router.post('/loginAslab', authController.loginAslab);
+
 router.post('/logout', authController.logout);
 
 router.get('/user', authMiddleware, authController.getUserByToken); 
