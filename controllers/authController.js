@@ -1,4 +1,4 @@
-const { getAslabByNim, createAslab } = require('../models/aslabModel');
+const { getAslabByNim, createAslab,getAslabById } = require('../models/aslabModel');
 const { createUser, getUserByNim, getUserByID } = require('../models/userModel');
 const { generateToken, setTokenCookie, verifyToken } = require('../utils/jwtUtils');
 const bcrypt = require('bcryptjs');
@@ -107,22 +107,31 @@ exports.logout = (req, res) => {
 };
 
 exports.getUserByToken = async (req, res) => {
-  const token = req.cookies.jwt || req.headers.authorization?.split(' ')[1];  // Ambil token dari cookie atau header Authorization
+  const token = req.cookies.jwt || req.headers.authorization?.split(' ')[1];  
   
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized: No token found' });
   }
 
   try {
-    // Verifikasi token dan ambil userId dari token
     const userId = await verifyToken(token);
-    console.log(userId);
-    
-    // Dapatkan informasi pengguna berdasarkan userId
-    const user = await getUserByID(userId);
-    console.log("user found" ,user);
 
-    res.status(200).json({ message: 'User found', user });
+    // Coba cari user di tabel users
+    let user = null;
+    let role = 'user';
+    try {
+      user = await getUserByID(userId);
+    } catch (err) {
+      // Jika tidak ditemukan, coba cari di tabel aslab
+      try {
+        user = await getAslabById(userId);
+        role = 'aslab';
+      } catch (innerErr) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+    }
+
+    res.status(200).json({ message: 'User found', user, role });
   } catch (err) {
     console.error(err);
     res.status(401).json({ error: err.message || 'Unauthorized: Invalid token' });
