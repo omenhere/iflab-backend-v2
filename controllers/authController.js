@@ -63,7 +63,7 @@ exports.login = async (req, res) => {
 
     setTokenCookie(res, token);
 
-    res.status(200).json({ message: 'Login successful', user, token });
+    res.status(200).json({ message: 'Login successful', user: { ...user, role: 'mahasiswa' }, token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -93,7 +93,7 @@ exports.loginAslab = async (req, res) => {
 
     setTokenCookie(res, token);
 
-    res.status(200).json({ message: 'Login successful', user, token });
+    res.status(200).json({ message: 'Login successful', user: { ...user, role: 'aslab' }, token });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -122,7 +122,9 @@ exports.getUserByToken = async (req, res) => {
     try {
       user = await getUserByID(userId);
     } catch (err) {
-      // Jika tidak ditemukan, coba cari di tabel aslab
+      // Jika tidak ditemukan, coba cari di tabel as
+      // 
+      // lab
       try {
         user = await getAslabById(userId);
         role = 'aslab';
